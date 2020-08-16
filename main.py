@@ -64,15 +64,18 @@ def parseXlsFile(inputFile: str)-> None:
 def isXlsx(inputFile: str)-> bool:
     return 'xlsx' == inputFile.split('.').pop()
 
-def createOutputFileName(inputFile: str)-> str:
-    return outputPrefix + inputFile
+def createOutputFileName(inputPath: str)-> str:    
+    (path, extension) = os.path.splitext(inputPath)
+    basename = os.path.basename(path)
+
+    return outputPrefix + basename + '.csv'
 
 def main(argv):
     if len(sys.argv) != 2:
         raise ValueError('Input file 1st arg output file ' + outputPrefix + '[filename]')
     
-    inputFile = sys.argv[1]
-    parseXlsFile(inputFile) if isXlsx(inputFile) else parseCsv(inputFile)
+    inputPath = sys.argv[1]
+    parseXlsFile(inputPath) if isXlsx(inputPath) else parseCsv(inputPath)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
