@@ -5,8 +5,14 @@ import os
 
 from ftfy import fix_text
 
-output = './output.csv'
-inputFile = './postBaldronContacts-withMamut.csv'#'./sample.csv'
+import sys
+
+# Version 1.0.0 fix csv encoding, columns with city or City in title capitalized
+version='1.0.0'
+
+# Output prefix
+outputPrefix = 'kubaScriptV' + version.replace('.','') + '_'
+
 
 def processCell(value)-> str:
     if not isinstance(value, str):
@@ -38,14 +44,30 @@ def removeFileIfExists(output)-> None:
     if os.path.exists(output):
         os.remove(output)
 
-todoRemoveStop = 0
-chunksize = 10 ** 100
-for chunk in pd.read_csv(inputFile, chunksize=chunksize, encoding='iso-8859-1'):
-    removeFileIfExists(output)
-    processRow(chunk).to_csv('./output.csv', index=False)
+def parseFile(inputFile: str, output: str):
+    # todoRemoveStop = 0
+    chunksize = 10 ** 100
 
-    # todoRemoveStop+=1
-    # if todoRemoveStop > 4:
-    #     break
+    for chunk in pd.read_csv(inputFile, chunksize=chunksize, encoding='iso-8859-1'):
+        removeFileIfExists(output)
+        processRow(chunk).to_csv(output, index=False)
 
-# print(''.join(list(notValidatedYet)))
+        # todoRemoveStop+=1
+        # if todoRemoveStop > 4:
+        #     break
+
+    # print(''.join(list(notValidatedYet)))
+
+
+def main(argv):
+    if len(sys.argv) != 2:
+        raise ValueError('Input file 1st arg output file ' + outputPrefix + '[filename]')
+    
+    inputFile = sys.argv[1]
+    outputFile = outputPrefix + inputFile
+    
+    parseFile(inputFile, outputFile)
+
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
