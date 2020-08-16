@@ -19,8 +19,6 @@ def processCell(value)-> str:
         return value
     value = fix_text(value)
     
-    print(value)
-
     return value
 
 def processCity(city: str)-> str:
@@ -29,6 +27,14 @@ def processCity(city: str)-> str:
     
     return city.capitalize()
 
+
+def showCell(cell):
+    if isinstance(cell, str):
+        print(cell)
+
+    return cell
+
+
 def processRow(frame: DataFrame)-> DataFrame:
     for colName in frame.columns:
         frame[colName] = frame[colName].map(processCell)
@@ -36,38 +42,37 @@ def processRow(frame: DataFrame)-> DataFrame:
         if 'city' in colName or 'City' in colName:
             frame[colName] = frame[colName].map(processCity)
         
+        frame[colName].map(showCell)
 
-        
     return frame    
 
 def removeFileIfExists(output)-> None:
     if os.path.exists(output):
         os.remove(output)
 
-def parseFile(inputFile: str, output: str):
-    # todoRemoveStop = 0
-    chunksize = 10 ** 100
-
+def parseCsv(inputFile: str)-> None:
+    chunksize = 10 ** 4
+    output = createOutputFileName(inputFile)
     for chunk in pd.read_csv(inputFile, chunksize=chunksize, encoding='iso-8859-1'):
         removeFileIfExists(output)
         processRow(chunk).to_csv(output, index=False)
 
-        # todoRemoveStop+=1
-        # if todoRemoveStop > 4:
-        #     break
+def parseXlsFile(inputFile: str)-> None:
+    frame = pd.read_excel(inputFile)
+    processRow(frame).to_csv(createOutputFileName(inputFile), index=False)    
 
-    # print(''.join(list(notValidatedYet)))
+def isXlsx(inputFile: str)-> bool:
+    return 'xlsx' == inputFile.split('.').pop()
 
+def createOutputFileName(inputFile: str)-> str:
+    return outputPrefix + inputFile
 
 def main(argv):
     if len(sys.argv) != 2:
         raise ValueError('Input file 1st arg output file ' + outputPrefix + '[filename]')
     
     inputFile = sys.argv[1]
-    outputFile = outputPrefix + inputFile
-    
-    parseFile(inputFile, outputFile)
-
+    parseXlsFile(inputFile) if isXlsx(inputFile) else parseCsv(inputFile)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
