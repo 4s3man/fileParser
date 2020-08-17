@@ -16,21 +16,21 @@ version='1.0.1'
 outputPrefix = 'kubaScriptV' + version.replace('.','') + '_'
 ENCODING = 'Windows-1252'
 
-def processCell(value)-> str:
+def fixString(value)-> str:
     if not isinstance(value, str):
         return value
     value = fix_text(value)
     
     return value
 
-def processCity(city: str)-> str:
+def capitalizeString(city: str)-> str:
     if not isinstance(city, str):
         return city
     
     return city.capitalize()
 
 
-def showCell(cell):
+def printString(cell):
     if isinstance(cell, str):
         print(cell)
 
@@ -39,12 +39,12 @@ def showCell(cell):
 
 def processRow(frame: DataFrame)-> DataFrame:
     for colName in frame.columns:
-        frame[colName] = frame[colName].map(processCell)
+        frame[colName] = frame[colName].map(fixString)
         
         if 'city' in colName or 'City' in colName:
-            frame[colName] = frame[colName].map(processCity)
+            frame[colName] = frame[colName].map(capitalizeString)
         
-        frame[colName].map(showCell)
+        frame[colName].map(printString)
 
     return frame    
 
