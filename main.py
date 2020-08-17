@@ -7,12 +7,14 @@ from ftfy import fix_text
 
 import sys
 
-# Version 1.0.0 fix csv encoding, columns with city or City in title capitalized
-version='1.0.0'
+# Version 1.0.1 fix csv encoding, columns with city or City in title capitalized
+# used as terminal command
+# output files in directory with input file
+version='1.0.1'
 
 # Output prefix
 outputPrefix = 'kubaScriptV' + version.replace('.','') + '_'
-
+ENCODING = 'Windows-1252'
 
 def processCell(value)-> str:
     if not isinstance(value, str):
@@ -53,27 +55,34 @@ def removeFileIfExists(output)-> None:
 def parseCsv(inputFile: str)-> None:
     chunksize = 10 ** 4
     output = createOutputFileName(inputFile)
-    for chunk in pd.read_csv(inputFile, chunksize=chunksize, encoding='iso-8859-1'):
+    for chunk in pd.read_csv(inputFile, chunksize=chunksize, encoding=ENCODING):
         removeFileIfExists(output)
-        processRow(chunk).to_csv(output, index=False)
+        saveFile(chunk, inputFile)
 
 def parseXlsFile(inputFile: str)-> None:
     frame = pd.read_excel(inputFile)
-    processRow(frame).to_csv(createOutputFileName(inputFile), index=False)    
+    frame = processRow(frame)
+    saveFile(frame, inputFile)
 
 def isXlsx(inputFile: str)-> bool:
     return 'xlsx' == inputFile.split('.').pop()
 
-def createOutputFileName(inputPath: str)-> str:    
+def createOutputFileName(inputPath: str)-> str:        
     (path, extension) = os.path.splitext(inputPath)
     basename = os.path.basename(path)
+    
+    return path.replace(basename, outputPrefix + basename + '.csv')
 
-    return outputPrefix + basename + '.csv'
+def saveFile(frame: DataFrame, inputFile: str):
+    frame.to_csv(createOutputFileName(inputFile), encoding=ENCODING, index=False)
 
 def main(argv):
-    if len(sys.argv) != 2:
-        raise ValueError('Input file 1st arg output file ' + outputPrefix + '[filename]')
+    if len(sys.argv) < 2:
+        raise ValueError('Input file 1st arg output file ' + outputPrefix + '[filename], 2nd arg encoding default' + ENCODING)
     
+    if 3 <= len(sys.argv):
+        ENCODING = sys.argv[2]
+
     inputPath = sys.argv[1]
     parseXlsFile(inputPath) if isXlsx(inputPath) else parseCsv(inputPath)
 
