@@ -2,6 +2,7 @@
 import pandas as pd
 from pandas import DataFrame, Series
 import os
+import unicodedata
 
 from ftfy import fix_text
 
@@ -15,6 +16,7 @@ version='1.0.1'
 # Output prefix
 outputPrefix = 'kubaScriptV' + version.replace('.','') + '_'
 ENCODING = 'Windows-1252'
+INPUT_ENCODING = ENCODING
 
 def fixString(value)-> str:
     if not isinstance(value, str):
@@ -45,6 +47,7 @@ def processRow(frame: DataFrame)-> DataFrame:
             frame[colName] = frame[colName].map(capitalizeString)
         
         frame[colName].map(printString)
+        frame[colName].map(lambda x: x.replace('(Ingen)','') if isinstance(x, str) else x)
 
     return frame    
 
@@ -55,7 +58,7 @@ def removeFileIfExists(output)-> None:
 def parseCsv(inputFile: str)-> None:
     chunksize = 10 ** 4
     output = createOutputFileName(inputFile)
-    for chunk in pd.read_csv(inputFile, chunksize=chunksize, encoding=ENCODING):
+    for chunk in pd.read_csv(inputFile, chunksize=chunksize, encoding=INPUT_ENCODING):
         removeFileIfExists(output)
         saveFile(chunk, inputFile)
 
@@ -74,7 +77,7 @@ def createOutputFileName(inputPath: str)-> str:
     return path.replace(basename, outputPrefix + basename + '.csv')
 
 def saveFile(frame: DataFrame, inputFile: str):
-    frame.to_csv(createOutputFileName(inputFile), encoding=ENCODING, index=False)
+    frame.to_csv(createOutputFileName(inputFile), encoding=ENCODING, index=False, errors='replace')
 
 def main(argv):
     if len(sys.argv) < 2:
